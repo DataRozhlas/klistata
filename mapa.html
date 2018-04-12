@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Klistata v lesich CR</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="leaflet.css" />
+  <link rel="stylesheet" href="locate.css" />
+
+
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+        }
+        #crosshair {
+          position: fixed;
+          width: 20px; /*the image width*/
+          height: 20px; /*the image height*/
+          left: 50%;
+          top: 50%;
+          margin-left: -10px; /*half the image width*/
+          margin-top: -10px; /*half the image height*/
+          z-index: 100;
+        }
+    </style>
+</head>
+<body>
+          <div id="crosshair"><img src="MapCursor.png" /></div>
+    <div id="map"></div>
+
+  <script src="leaflet.js"></script>
+  <script src="locate.js"></script>
+
+    <script>
+
+        var base = L.tileLayer('http://{s}.sm.mapstack.stamen.com/naip/{z}/{x}/{y}.png', { maxZoom: 12, minZoom: 6 });
+
+        var baseLayers = {
+            "Satelitni mapa": base
+        };
+
+        var labelsL = new L.LayerGroup();
+        var klisteL = new L.LayerGroup();
+        var labels = L.tileLayer('http://{s}.sm.mapstack.stamen.com/streets-and-labels/{z}/{x}/{y}.png', {
+            maxZoom: 14,
+            minZoom: 6,
+        }).addTo(labelsL);
+        var kliste = L.tileLayer('http://grifinor.net/data/kliste/{z}/{x}/{y}.png', {
+         tms: true,
+            minZoom: 6,
+         maxZoom: 13
+        }).addTo(klisteL);
+        var overlays = {
+            "Vyskyt klistat": kliste,
+            "Polohopis": labels
+        };
+
+        var map = L.map('map', {
+//          center: [39.73, -104.99],
+//          zoom: 10,
+            layers: [base, kliste, labels]
+        });
+
+        L.control.layers(baseLayers, overlays).addTo(map);
+
+    // function onLocationFound(e) {
+        //  var radius = e.accuracy / 2;
+    //
+        //  L.marker(e.latlng).addTo(map)
+        //      .bindPopup("You are within " + radius + " meters from this point").openPopup();
+    //
+        //  L.circle(e.latlng, radius).addTo(map);
+        // }
+    //
+        // function onLocationError(e) {
+        //  alert(e.message);
+        // }
+    //
+        // map.on('locationfound', onLocationFound);
+        // map.on('locationerror', onLocationError);
+    //
+        map.setView([49.8, 15], 8);
+
+    // add location control to global name space for testing only
+    // on a production site, omit the "lc = "!
+    lc = L.control.locate({
+        follow: true,
+        strings: {
+            title: "Zobraz mou polohu z GPS nebo mobilu."
+        }
+    }).addTo(map);
+
+    map.on('startfollowing', function() {
+        map.on('dragstart', lc._stopFollowing, lc);
+    }).on('stopfollowing', function() {
+        map.off('dragstart', lc._stopFollowing, lc);
+    });
+    </script>
+</body>
+</html>
